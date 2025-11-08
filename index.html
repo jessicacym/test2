@@ -1,0 +1,2983 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Queen Elizabeth II - A Journey in Coins</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            overflow-x: hidden;
+            background: #000;
+        }
+
+        /* ========== BOOK INTRO ANIMATION ========== */
+        
+        /* Intro Section with Book */
+        .intro-section {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            background: #000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+            perspective: 2500px;
+            opacity: 1;
+        }
+
+        .intro-section.fade-out {
+            animation: fadeOutIntro 1s ease forwards;
+        }
+
+        @keyframes fadeOutIntro {
+            from {
+                opacity: 1;
+            }
+            to {
+                opacity: 0;
+            }
+        }
+
+        .intro-section.hidden {
+            display: none;
+        }
+
+        .book-wrapper {
+            position: relative;
+            opacity: 0;
+            animation: fadeInBook 2s ease forwards;
+            animation-delay: 0.5s;
+        }
+
+        @keyframes fadeInBook {
+            to {
+                opacity: 1;
+            }
+        }
+
+        /* Book Container - fixed size */
+        .book-container {
+            position: relative;
+            width: 600px;
+            height: 750px;
+            transform-style: preserve-3d;
+        }
+
+        /* Left page (hidden initially, shows after opening) */
+        .page-left {
+            position: absolute;
+            width: 600px;
+            height: 750px;
+            left: 0;
+            top: 0;
+            background: #ffffff;
+            border-radius: 8px 0 0 8px;
+            box-shadow: -20px 0 40px rgba(0, 0, 0, 0.3);
+            padding: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transform-origin: right center;
+        }
+
+        .book-container.opening .page-left {
+            animation: showLeftPage 0.5s ease forwards;
+            animation-delay: 2s;
+        }
+
+        .book-container.opened .page-left {
+            opacity: 1;
+        }
+
+        @keyframes showLeftPage {
+            to {
+                opacity: 1;
+            }
+        }
+
+        .page-left::before {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            background: linear-gradient(to right, 
+                rgba(0,0,0,0.05) 0%, 
+                rgba(0,0,0,0.02) 5%,
+                transparent 10%);
+            border-radius: 8px 0 0 8px;
+            pointer-events: none;
+        }
+
+        /* Right page with cover (flips open) */
+        .page-right-container {
+            position: absolute;
+            width: 600px;
+            height: 750px;
+            right: 0;
+            top: 0;
+            transform-style: preserve-3d;
+            transform-origin: left center;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+
+        .page-right-container:hover:not(.flipping) {
+            transform: scale(1.02);
+        }
+
+        .book-container.opening .page-right-container {
+            animation: flipCoverOpen 2.5s cubic-bezier(0.645, 0.045, 0.355, 1) forwards;
+            cursor: default;
+        }
+
+        .book-container.opened .page-right-container {
+            transform: rotateY(-180deg);
+        }
+
+        @keyframes flipCoverOpen {
+            0% {
+                transform: rotateY(0deg);
+            }
+            100% {
+                transform: rotateY(-180deg);
+            }
+        }
+
+        /* Cover front (what you see initially) */
+        .cover-front {
+            position: absolute;
+            width: 600px;
+            height: 750px;
+            background: #2e3447;
+            border-radius: 0 8px 8px 0;
+            box-shadow:
+                20px 0 50px rgba(0, 0, 0, 0.6),
+                0 30px 80px rgba(0, 0, 0, 0.8);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            padding: 50px 60px 50px 60px;
+            backface-visibility: hidden;
+            transform: rotateY(0deg);
+        }
+
+        .cover-front::after {
+            display: none;
+        }
+
+        /* Cover back (inside of cover - shows when flipped) */
+        .cover-back {
+            position: absolute;
+            width: 600px;
+            height: 750px;
+            background: linear-gradient(145deg, #f8f8f8 0%, #ffffff 100%);
+            border-radius: 8px 0 0 8px;
+            transform: rotateY(180deg);
+            backface-visibility: hidden;
+            box-shadow:
+                -20px 0 40px rgba(0, 0, 0, 0.2),
+                inset 10px 0 20px rgba(0, 0, 0, 0.03);
+            padding: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Gray vertical line removed for cleaner look */
+        /* .cover-back::after {
+            content: '';
+            position: absolute;
+            right: 0;
+            top: 0;
+            width: 12px;
+            height: 100%;
+            background: linear-gradient(to left, rgba(0,0,0,0.15), transparent);
+        } */
+
+        /* Page images */
+        .page-image-container {
+            width: 100%;
+            max-width: 100%;
+            border-radius: 6px;
+            overflow: hidden;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+        }
+
+        .page-image-container img {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        /* Cover content */
+        .queen-portrait {
+            width: 410px;
+            height: 450px;
+            margin-bottom: 30px;
+            margin-top: 0;
+            border-radius: 0;
+            overflow: hidden;
+            box-shadow: 0 15px 50px rgba(0, 0, 0, 0.7);
+            background-color: transparent;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-sizing: border-box;
+        }
+
+        .queen-portrait img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        .cover-title {
+            font-size: 30px;
+            font-weight: 400;
+            color: #ffffff;
+            text-align: center;
+            letter-spacing: 3px;
+            margin-bottom: 5px;
+            margin-top: 0;
+            font-style: italic;
+            font-family: 'Playfair Display', Georgia, serif;
+        }
+
+        .cover-main-title {
+            font-size: 50px;
+            font-weight: 700;
+            color: #ffffff;
+            text-align: center;
+            line-height: 1.15;
+            margin-bottom: 30px;
+            margin-top: 0;
+            text-shadow: none;
+            font-family: 'Playfair Display', Georgia, serif;
+            letter-spacing: 1.5px;
+        }
+
+        .cover-subtitle {
+            font-size: 20px;
+            font-weight: 400;
+            color: #ffffff;
+            text-align: center;
+            font-style: italic;
+            margin-bottom: 8px;
+            margin-top: 0;
+            font-family: 'Playfair Display', Georgia, serif;
+            letter-spacing: 0.8px;
+        }
+
+        .cover-author {
+            font-size: 13px;
+            font-weight: 300;
+            color: rgba(255, 255, 255, 0.85);
+            text-align: center;
+            font-style: italic;
+            margin-top: 0;
+            margin-bottom: 0;
+            font-family: 'Playfair Display', Georgia, serif;
+            letter-spacing: 0.5px;
+        }
+
+        /* Spine shadow in center - REMOVED */
+        .spine-shadow {
+            display: none;
+        }
+
+        /* Click Hint */
+        .click-hint {
+            position: absolute;
+            bottom: -80px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 13px;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            opacity: 0;
+            animation: fadeInHint 1.5s ease forwards;
+            animation-delay: 3s;
+            font-style: normal;
+            white-space: nowrap;
+            font-family: 'Playfair Display', Georgia, serif;
+            font-weight: 400;
+        }
+
+        .book-container.opening .click-hint {
+            display: none;
+        }
+
+        @keyframes fadeInHint {
+            to {
+                opacity: 1;
+            }
+        }
+
+        /* ========== MAIN WEBSITE CONTENT ========== */
+
+        /* Main Content */
+        .main-content {
+            opacity: 0;
+            transition: opacity 1s ease;
+        }
+
+        .main-content.visible {
+            opacity: 1;
+        }
+
+        /* Header */
+        .header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 30px 40px;
+            transition: all 0.3s ease;
+            opacity: 0;
+            transform: translateY(-100%);
+        }
+
+        .header.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .header.light {
+            color: #1a1a1a;
+        }
+
+        .header.dark {
+            color: white;
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: 600;
+            letter-spacing: 3px;
+        }
+
+        .order-btn {
+            padding: 12px 28px;
+            border-radius: 25px;
+            border: none;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .header.dark .order-btn {
+            background: rgba(255, 255, 255, 0.15);
+            color: white;
+        }
+
+        .header.light .order-btn {
+            background: rgba(0, 0, 0, 0.08);
+            color: #1a1a1a;
+        }
+
+        .order-btn:hover {
+            transform: scale(1.05);
+        }
+
+        /* Section base */
+        section {
+            min-height: 100vh;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 60%;
+            margin-left: auto;
+            margin-right: auto;
+            box-sizing: border-box;
+        }
+
+        /* Section 1 - Title Page */
+        .section-1 {
+            background: #ffffff;
+            color: #1a1a1a;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding-top: 60px;
+            padding-bottom: 60px;
+        }
+
+        .title-image-container {
+            width: 100%;
+            max-width: 900px;
+            margin-bottom: 50px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .title-image-container img {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        .title-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            pointer-events: none;
+        }
+
+        .title-overlay-main {
+            font-size: 26px;
+            font-weight: 700;
+            color: #ffffff;
+            text-align: center;
+            letter-spacing: 4px;
+            position: absolute;
+            top: 32%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
+            font-family: 'Playfair Display', Georgia, serif;
+            white-space: nowrap;
+            max-width: 45%;
+        }
+
+        .title-overlay-subtitle {
+            font-size: 14px;
+            font-weight: 400;
+            color: #ffffff;
+            text-align: center;
+            font-style: italic;
+            letter-spacing: 0.5px;
+            line-height: 1.8;
+            position: absolute;
+            bottom: 15px;
+            left: 50%;
+            transform: translateX(-50%);
+            text-shadow: 0 2px 8px rgba(0, 0, 0, 0.8);
+            font-family: 'Playfair Display', Georgia, serif;
+            white-space: nowrap;
+        }
+
+        .coin-button-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .coin-button {
+            width: 120px;
+            height: 120px;
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+            background-image: url('4.png');
+            background-size: cover;
+            background-position: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .coin-button:hover {
+            transform: scale(1.1) translateY(-5px);
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .coin-button:active {
+            transform: scale(1.05) translateY(-2px);
+        }
+
+        .click-text {
+            font-size: 16px;
+            font-style: italic;
+            color: #40375F;
+            letter-spacing: 1px;
+            font-family: 'Playfair Display', Georgia, serif;
+        }
+
+        /* Section 2 - When Did You Last Touch */
+        .section-2 {
+            background: #ffffff;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding-top: 60px;
+            padding-bottom: 60px;
+        }
+
+        .section-2-container {
+            text-align: center;
+            max-width: 600px;
+        }
+
+        .touch-question {
+            margin-bottom: 40px;
+        }
+
+        .touch-question-line {
+            font-size: 24px;
+            font-weight: 700;
+            letter-spacing: 3px;
+            margin-bottom: 8px;
+            font-family: 'Playfair Display', Georgia, serif;
+            color: #2a2520;
+        }
+
+        .touch-question-line span {
+            display: inline-block;
+            opacity: 0;
+            transform: translateY(-30px);
+        }
+
+        .touch-question-line span.animate {
+            animation: letterFlyIn 0.5s ease forwards;
+        }
+
+        @keyframes letterFlyIn {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .quarter-coin-container {
+            margin-top: 30px;
+            opacity: 0;
+            perspective: 1000px;
+        }
+
+        .quarter-coin-container.show {
+            animation: coinAppear 0.5s ease forwards;
+        }
+
+        @keyframes coinAppear {
+            to {
+                opacity: 1;
+            }
+        }
+
+        .quarter-coin {
+            width: 180px;
+            height: 180px;
+            margin: 0 auto;
+            position: relative;
+            transform-style: preserve-3d;
+            cursor: pointer;
+            transition: transform 0.8s ease;
+        }
+
+        .quarter-coin:hover {
+            transform: scale(1.1);
+        }
+
+        .quarter-coin.flipped {
+            transform: rotateY(180deg);
+        }
+
+        .quarter-coin.flipped:hover {
+            transform: rotateY(180deg) scale(1.1);
+        }
+
+        .coin-front,
+        .coin-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+        }
+
+        .coin-front {
+            transform: rotateY(0deg);
+        }
+
+        .coin-back {
+            transform: rotateY(180deg);
+        }
+
+        .coin-front img,
+        .coin-back img {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+
+        .flip-instruction {
+            font-size: 14px;
+            font-style: italic;
+            color: #666;
+            margin-top: 15px;
+            font-family: 'Playfair Display', Georgia, serif;
+        }
+
+        /* Section 3 - Yellow Circle */
+        .section-3 {
+            background: white;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .yellow-circle {
+            position: absolute;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 30% 30%, #e8e8e8, #c0c0c0 50%, #a8a8a8);
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 1;
+            opacity: 0;
+            box-shadow: inset 0 2px 10px rgba(255, 255, 255, 0.5);
+        }
+
+        .yellow-circle.expand {
+            animation: expandCircle 1.2s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        }
+
+        @keyframes expandCircle {
+            0% {
+                width: 60px;
+                height: 60px;
+                opacity: 1;
+            }
+            100% {
+                width: 300vmax;
+                height: 300vmax;
+                opacity: 1;
+            }
+        }
+
+        .yellow-circle.shrink {
+            animation: shrinkAndDrop 2.5s cubic-bezier(0.6, 0, 0.4, 1) forwards;
+            animation-delay: 0.5s;
+            position: fixed;
+            z-index: 9999;
+        }
+
+        @keyframes shrinkAndDrop {
+            0% {
+                width: 300vmax;
+                height: 300vmax;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+            }
+            30% {
+                width: 60px;
+                height: 60px;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+            }
+            50% {
+                width: 60px;
+                height: 60px;
+                top: calc(100vh - 20px);
+                left: 52%;
+                transform: translate(-50%, 0);
+            }
+            75% {
+                width: 60px;
+                height: 60px;
+                top: calc(100vh + 200px);
+                left: 58%;
+                transform: translate(-50%, 0);
+                opacity: 1;
+            }
+            85% {
+                width: 60px;
+                height: 60px;
+                top: calc(100vh + 280px);
+                left: 60%;
+                transform: translate(-50%, 0);
+                opacity: 1;
+            }
+            95% {
+                width: 60px;
+                height: 60px;
+                top: calc(100vh + 280px);
+                left: 60%;
+                transform: translate(-50%, 0) scale(0.8);
+                opacity: 0.3;
+            }
+            100% {
+                width: 60px;
+                height: 60px;
+                top: calc(100vh + 280px);
+                left: 60%;
+                transform: translate(-50%, 0) scale(0.5);
+                opacity: 0;
+            }
+        }
+
+        .section-3-content {
+            position: relative;
+            z-index: 2;
+            text-align: center;
+            max-width: 750px;
+            padding-top: 80px;
+            padding-bottom: 80px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 50px;
+        }
+
+        .section-3-text {
+            font-size: 20px;
+            line-height: 1.8;
+            color: #1a1a1a;
+            text-align: center;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            max-width: 700px;
+        }
+
+        .section-3-image-container {
+            width: 100%;
+            max-width: 450px;
+            border-radius: 0;
+            overflow: hidden;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+        }
+
+        .section-3-image-container img {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        /* Section 4 - Timeline */
+        .section-4 {
+            background: #f5f5f5;
+            transition: background 0.6s ease;
+            position: relative;
+        }
+
+        .section-4::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            opacity: 0;
+            transition: opacity 0.6s ease;
+            pointer-events: none;
+        }
+
+        .section-4.has-background::before {
+            opacity: 0.1;
+        }
+
+        .section-4.dark {
+            color: white;
+        }
+
+        .timeline-container {
+            display: flex;
+            width: 100%;
+            max-width: 1400px;
+            padding-top: 80px;
+            padding-bottom: 80px;
+            margin: 0 auto;
+        }
+
+        .timeline-left {
+            flex: 1;
+            position: relative;
+            min-height: 850px;
+        }
+
+        .timeline-image {
+            position: absolute;
+            left: 20px;
+            width: calc(100% - 20px);
+            height: 100%;
+            border-radius: 0;
+            opacity: 0;
+            transition: opacity 0.6s ease;
+            background-size: contain;
+            background-position: center top;
+            background-repeat: no-repeat;
+        }
+
+        .timeline-image.active {
+            opacity: 1;
+        }
+
+        .timeline-right {
+            flex: 1;
+            padding-left: 20px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .timeline-header {
+            font-size: 14px;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            opacity: 1;
+            margin-bottom: 20px;
+        }
+
+        .timeline-main-title {
+            font-size: 48px;
+            font-weight: 700;
+            line-height: 1.2;
+            margin-bottom: 40px;
+        }
+
+        /* Timeline Progress Bar - Cylindrical Style */
+        .timeline-progress-bar {
+            position: relative;
+            width: calc(100% - 30px);
+            height: 25px;
+            margin-bottom: 50px;
+            margin-right: 30px;
+            display: flex;
+            align-items: center;
+        }
+
+        .progress-bar-track {
+            position: absolute;
+            width: 100%;
+            height: 14px;
+            background: linear-gradient(to bottom,
+                rgba(180, 180, 180, 0.4) 0%,
+                rgba(140, 140, 140, 0.5) 50%,
+                rgba(100, 100, 100, 0.4) 100%);
+            border-radius: 7px;
+            box-shadow:
+                inset 0 2px 4px rgba(0, 0, 0, 0.4),
+                inset 0 -1px 2px rgba(255, 255, 255, 0.2),
+                0 2px 6px rgba(0, 0, 0, 0.3);
+        }
+
+        .progress-bar-fill {
+            position: absolute;
+            height: 14px;
+            background: linear-gradient(to bottom,
+                rgba(220, 220, 220, 0.7) 0%,
+                rgba(180, 180, 180, 0.8) 50%,
+                rgba(140, 140, 140, 0.7) 100%);
+            border-radius: 7px;
+            transition: width 0.5s ease;
+            box-shadow:
+                inset 0 1px 2px rgba(255, 255, 255, 0.4),
+                0 2px 6px rgba(255, 255, 255, 0.2);
+        }
+
+        .progress-indicator {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background: radial-gradient(circle at 30% 30%,
+                rgba(255, 255, 255, 1) 0%,
+                rgba(230, 230, 230, 0.95) 40%,
+                rgba(200, 200, 200, 0.9) 100%);
+            border-radius: 50%;
+            transition: left 0.5s ease;
+            box-shadow:
+                0 0 10px rgba(255, 255, 255, 0.8),
+                0 0 20px rgba(255, 255, 255, 0.4),
+                0 3px 8px rgba(0, 0, 0, 0.3);
+            border: 2px solid rgba(255, 255, 255, 0.6);
+            z-index: 3;
+        }
+
+        .timeline-dot-container {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        .time-dot {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 30% 30%, #e8e8e8, #c0c0c0 50%, #a8a8a8);
+            cursor: pointer;
+            transition: transform 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: inset 0 2px 10px rgba(255, 255, 255, 0.5), 0 4px 15px rgba(0, 0, 0, 0.2);
+            background-size: cover;
+            background-position: center center;
+            background-repeat: no-repeat;
+            animation: dotBounce 1.5s ease-in-out infinite;
+            overflow: hidden;
+        }
+
+        @keyframes dotBounce {
+            0%, 100% {
+                transform: translateY(0) scale(1);
+            }
+            50% {
+                transform: translateY(-10px) scale(1.05);
+            }
+        }
+
+        .time-dot:hover {
+            animation: dotBounceHover 1.5s ease-in-out infinite;
+        }
+
+        @keyframes dotBounceHover {
+            0%, 100% {
+                transform: translateY(0) scale(1.1);
+            }
+            50% {
+                transform: translateY(-10px) scale(1.15);
+            }
+        }
+
+        .time-dot.white {
+            background: white;
+        }
+
+        .time-dot.has-image {
+            /* Background image set dynamically via JavaScript */
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            background-size: 100% 100%;
+            background-position: center center;
+        }
+
+        .time-text {
+            font-size: 24px;
+            font-weight: 600;
+        }
+
+        .timeline-content {
+            flex: 1;
+        }
+
+        .timeline-title {
+            font-size: 36px;
+            font-weight: 700;
+            line-height: 1.3;
+            margin-bottom: 24px;
+        }
+
+        .timeline-description {
+            font-size: 18px;
+            line-height: 1.7;
+            opacity: 1;
+            margin-bottom: 20px;
+        }
+
+        /* Special styling for 1953 timeline */
+        .timeline-special-header {
+            font-size: 28px;
+            font-weight: 700;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin-bottom: 20px;
+        }
+
+        .timeline-special-subtitle {
+            font-size: 26px;
+            font-style: italic;
+            margin-bottom: 30px;
+            font-family: 'Playfair Display', Georgia, serif;
+        }
+
+        .timeline-special-text {
+            font-size: 17px;
+            line-height: 1.8;
+            margin-bottom: 20px;
+            opacity: 1;
+        }
+
+        .timeline-coins-container {
+            display: flex;
+            gap: 20px;
+            margin-top: 30px;
+            align-items: center;
+        }
+
+        .timeline-coin {
+            width: 100px;
+            height: 100px;
+            position: relative;
+            transform-style: preserve-3d;
+            cursor: pointer;
+            transition: transform 0.8s ease;
+            perspective: 1000px;
+        }
+
+        .timeline-coin.flipped {
+            transform: rotateY(180deg);
+        }
+
+        .timeline-coin-front,
+        .timeline-coin-back {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            position: absolute;
+            top: 0;
+            left: 0;
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+        }
+
+        .timeline-coin-back {
+            transform: rotateY(180deg);
+        }
+
+        .timeline-coin-image {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            display: block;
+        }
+
+        .timeline-coin:hover {
+            transform: scale(1.1);
+        }
+
+        .timeline-coin.flipped:hover {
+            transform: rotateY(180deg) scale(1.1);
+        }
+
+        .timeline-coin-caption {
+            font-size: 13px;
+            line-height: 1.6;
+            opacity: 1;
+            margin-top: 20px;
+            font-style: italic;
+        }
+
+        .timeline-cta {
+            margin-top: 40px;
+        }
+
+        .cta-button {
+            padding: 16px 40px;
+            background: white;
+            color: #1a1a1a;
+            border: none;
+            border-radius: 30px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+
+        .cta-button:hover {
+            transform: scale(1.05);
+        }
+
+        /* Section 5 - The Quarter's World */
+        .section-5 {
+            background: #2a1f1a;
+            color: #ffffff;
+            min-height: 100vh;
+            padding-top: 100px;
+            padding-bottom: 100px;
+        }
+
+        .section-5-container {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 0 40px;
+        }
+
+        .section-5-title {
+            font-size: 52px;
+            font-weight: 700;
+            letter-spacing: 8px;
+            text-align: center;
+            margin-bottom: 100px;
+            font-family: 'Playfair Display', Georgia, serif;
+            line-height: 1.15;
+            text-transform: uppercase;
+            color: #ffffff;
+        }
+
+        .quarter-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 80px;
+            margin-bottom: 100px;
+            align-items: center;
+            padding: 0;
+            position: relative;
+        }
+
+        .quarter-image-left,
+        .quarter-image-right {
+            max-width: 100%;
+            margin: 0;
+            position: relative;
+        }
+
+        .quarter-image-left img,
+        .quarter-image-right img {
+            width: 100%;
+            height: auto;
+            border-radius: 0;
+            display: block;
+            box-shadow: none;
+        }
+
+        .quarter-text-content {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding-top: 0;
+        }
+
+        .quarter-text-content p {
+            font-size: 19px;
+            line-height: 1.75;
+            margin-bottom: 30px;
+            opacity: 1;
+            color: #ffffff;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            max-width: 100%;
+        }
+
+        .quarter-text-content strong {
+            font-weight: 700;
+        }
+
+        .quarter-text-content em {
+            font-style: italic;
+        }
+
+        .quarter-two-images {
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+            max-width: 100%;
+            margin: 0;
+        }
+
+        .quarter-two-images img {
+            width: 100%;
+            height: auto;
+            border-radius: 0;
+        }
+
+        .quarter-tickets-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            max-width: 100%;
+            margin: 0;
+        }
+
+        .quarter-tickets-grid img {
+            width: 100%;
+            height: auto;
+            border-radius: 0;
+        }
+
+        .quarter-footer {
+            text-align: center;
+            margin-top: 80px;
+            padding-top: 0;
+            border-top: none;
+            max-width: 770px;
+            margin-left: auto;
+            margin-right: auto;
+            cursor: pointer;
+            transition: opacity 0.3s ease;
+            padding-left: 0;
+        }
+
+        .quarter-footer:hover {
+            opacity: 0.8;
+        }
+
+        .quarter-footer p {
+            font-size: 24px;
+            line-height: 1.6;
+            font-style: italic;
+            font-family: 'Playfair Display', Georgia, serif;
+            opacity: 0.9;
+            margin-bottom: 12px;
+            letter-spacing: 0.5px;
+            color: #ffffff;
+        }
+
+        /* Section 6 - A Coin Died */
+        .section-6 {
+            position: relative;
+            min-height: 100vh;
+            padding: 0;
+            color: #ffffff;
+            overflow: hidden;
+        }
+
+        .section-6::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-image: url('35.png');
+            background-size: cover;
+            background-position: center;
+            opacity: 0.15;
+            z-index: 1;
+        }
+
+        .section-6-container {
+            width: 100%;
+            max-width: 1400px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 2;
+        }
+
+        .coin-died-content {
+            display: grid;
+            grid-template-columns: 0.8fr 1.2fr;
+            gap: 0;
+            align-items: start;
+            position: relative;
+        }
+
+        .coin-died-left {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 40px;
+            background-color: #8B6F47;
+            padding: 60px 40px;
+            box-sizing: border-box;
+            min-height: 100vh;
+            margin-left: -20%;
+            padding-left: 25%;
+            position: relative;
+            z-index: 3;
+            clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
+        }
+
+        .coin-died-right {
+            position: relative;
+            z-index: 2;
+            margin-left: -1px;
+        }
+
+        .queen-final-portrait {
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .queen-final-portrait img {
+            width: 100%;
+            height: auto;
+            border-radius: 0;
+            display: block;
+        }
+
+        .portrait-caption {
+            font-size: 16px;
+            font-style: italic;
+            line-height: 1.6;
+            text-align: center;
+            font-family: 'Playfair Display', Georgia, serif;
+            max-width: 300px;
+        }
+
+        .left-pennies-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            width: 100%;
+            max-width: 320px;
+        }
+
+        .left-pennies-grid img {
+            width: 100%;
+            height: auto;
+            border-radius: 50%;
+            opacity: 1;
+            transform: scale(1);
+            transition: opacity 5s ease, transform 5s ease;
+        }
+
+        .left-pennies-grid img.penny-hide {
+            opacity: 0;
+            transform: scale(0.8);
+        }
+
+        .coin-died-right {
+            padding: 80px 60px;
+        }
+
+        .section-6-title {
+            font-size: 72px;
+            font-weight: 700;
+            letter-spacing: 2px;
+            text-align: left;
+            margin-bottom: 25px;
+            font-family: 'Playfair Display', Georgia, serif;
+            line-height: 1.1;
+        }
+
+        .death-subtitle {
+            font-size: 36px;
+            font-weight: 700;
+            margin-bottom: 35px;
+            font-family: 'Playfair Display', Georgia, serif;
+        }
+
+        .death-date {
+            font-size: 18px;
+            margin-bottom: 25px;
+            line-height: 1.8;
+        }
+
+        .death-emphasis {
+            font-size: 18px;
+            font-style: italic;
+            margin-bottom: 35px;
+            line-height: 1.8;
+        }
+
+        .death-text {
+            font-size: 18px;
+            line-height: 1.8;
+            margin-bottom: 25px;
+        }
+
+        .death-realization {
+            font-size: 18px;
+            line-height: 1.8;
+            margin-bottom: 20px;
+        }
+
+        .death-quote {
+            font-size: 24px;
+            font-style: italic;
+            font-weight: 400;
+            letter-spacing: 0.5px;
+            text-align: left;
+            margin: 35px 0 45px 0;
+            font-family: 'Playfair Display', Georgia, serif;
+            line-height: 1.4;
+        }
+
+        .bottom-pennies {
+            display: flex;
+            gap: 20px;
+            margin-top: 30px;
+            max-width: 280px;
+        }
+
+        /* Section 6 Flippable Coin */
+        .section6-coin {
+            width: 130px;
+            height: 130px;
+            position: relative;
+            transform-style: preserve-3d;
+            cursor: pointer;
+            transition: transform 0.8s ease;
+            perspective: 1000px;
+        }
+
+        .section6-coin.flipped {
+            transform: rotateY(180deg);
+        }
+
+        .section6-coin-front,
+        .section6-coin-back {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            position: absolute;
+            top: 0;
+            left: 0;
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+        }
+
+        .section6-coin-back {
+            transform: rotateY(180deg);
+        }
+
+        .section6-coin img {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            display: block;
+        }
+
+        .section6-coin:hover {
+            transform: scale(1.1);
+        }
+
+        .section6-coin.flipped:hover {
+            transform: rotateY(180deg) scale(1.1);
+        }
+
+        .penny-caption {
+            font-size: 12px;
+            font-style: italic;
+            margin-top: 10px;
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        /* Section 7 - The Beginning of the End */
+        .section-7 {
+            background-image: url('46.png');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            min-height: 100vh;
+            padding-top: 100px;
+            padding-bottom: 100px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .section-7-container {
+            max-width: 600px;
+            margin: 0 auto;
+            text-align: center;
+            position: relative;
+            z-index: 2;
+        }
+
+        .copper-coins-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 40px;
+            margin-bottom: 80px;
+        }
+
+        .copper-coin {
+            max-width: 450px;
+        }
+
+        /* Enlarged final coin (47.PNG) */
+        .final-coin .copper-coin {
+            max-width: 900px;
+        }
+
+        .copper-coin img {
+            width: 100%;
+            height: auto;
+        }
+
+        .copper-ending-text {
+            font-size: 48px;
+            font-style: normal;
+            font-family: 'Playfair Display', Georgia, serif;
+            color: #3a2817;
+            text-align: center;
+            line-height: 1.6;
+            font-weight: 700;
+            max-width: 900px;
+            margin: 0 auto;
+            letter-spacing: 2px;
+        }
+
+        .clickable-coin {
+            cursor: pointer;
+            transition: transform 0.3s ease, opacity 0.3s ease;
+        }
+
+        .clickable-coin:hover {
+            transform: scale(1.05);
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .initial-coins {
+            transition: opacity 0.5s ease;
+        }
+
+        .final-coin {
+            transition: opacity 0.5s ease;
+        }
+
+        .final-coin:not(.hidden) {
+            animation: fadeInCoin 0.5s ease forwards;
+        }
+
+        @keyframes fadeInCoin {
+            from {
+                opacity: 0;
+                transform: scale(0.9);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        /* Section 8 - When Metal Becomes Memory (Vertical Timeline) */
+        .section-8 {
+            background: #000000;
+            color: #ffffff;
+            min-height: 100vh;
+            padding-top: 80px;
+            padding-bottom: 80px;
+            position: relative;
+        }
+
+        .section-8-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 40px;
+        }
+
+        .metal-memory-title {
+            font-size: 40px;
+            font-weight: 400;
+            letter-spacing: 6px;
+            text-align: center;
+            margin-bottom: 80px;
+            font-family: 'Playfair Display', Georgia, serif;
+        }
+
+        /* Vertical Timeline Container */
+        .vertical-timeline {
+            position: relative;
+            padding: 40px 0;
+            width: 100%;
+        }
+
+        /* Vertical Axis Line */
+        .timeline-axis-vertical {
+            position: absolute;
+            left: 50%;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateX(-50%);
+            z-index: 1;
+        }
+
+        /* Timeline Item */
+        .timeline-item {
+            position: relative;
+            width: 100%;
+            margin-bottom: 150px;
+            min-height: 300px;
+        }
+
+        /* Left Content (Text) - Absolute positioning */
+        .timeline-content-left {
+            position: absolute;
+            right: 50%;
+            top: 0;
+            width: calc(700px - 80px);
+            text-align: right;
+            padding-right: 80px;
+            opacity: 1;
+            transition: opacity 0.6s ease;
+        }
+
+        .timeline-content-left.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        /* Left Branch Line */
+        .timeline-branch-left {
+            position: absolute;
+            right: -80px;
+            top: 30px;
+            width: 40px;
+            height: 2px;
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        /* Year Label on Left */
+        .timeline-year-left {
+            font-size: 24px;
+            font-weight: 700;
+            letter-spacing: 2px;
+            margin-bottom: 16px;
+            font-family: 'Playfair Display', Georgia, serif;
+            color: #ffffff;
+        }
+
+        /* Timeline Item Title */
+        .timeline-item-title {
+            font-size: 20px;
+            font-weight: 700;
+            letter-spacing: 3px;
+            margin-bottom: 12px;
+            font-family: 'Playfair Display', Georgia, serif;
+            color: #ffffff;
+        }
+
+        /* Timeline Item Subtitle */
+        .timeline-item-subtitle {
+            font-size: 15px;
+            font-style: italic;
+            margin-bottom: 16px;
+            font-family: 'Playfair Display', Georgia, serif;
+            color: rgba(255, 255, 255, 0.85);
+        }
+
+        /* Timeline Item Text */
+        .timeline-item-text {
+            font-size: 14px;
+            line-height: 1.8;
+            margin-bottom: 14px;
+            font-family: 'Playfair Display', Georgia, serif;
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        /* Timeline Usage Text */
+        .timeline-usage {
+            font-size: 14px;
+            font-weight: 700;
+            margin-top: 20px;
+            font-family: 'Playfair Display', Georgia, serif;
+            color: #ffffff;
+        }
+
+        /* Center Dot (Clickable) - Always Visible, Fixed Center */
+        .timeline-dot-clickable {
+            position: absolute;
+            left: 50%;
+            top: 30px;
+            transform: translateX(-50%);
+            z-index: 10;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+            display: flex !important;
+            align-items: center;
+            justify-content: center;
+            opacity: 1 !important;
+            visibility: visible !important;
+            pointer-events: auto !important;
+        }
+
+        .timeline-dot-clickable:hover {
+            transform: translateX(-50%) scale(1.1);
+        }
+
+        .timeline-dot-clickable img {
+            width: 60px;
+            height: 60px;
+            display: block;
+            opacity: 1 !important;
+        }
+
+        /* Right Content (Coin Images) - Absolute positioning */
+        .timeline-content-right {
+            position: absolute;
+            left: 50%;
+            top: 0;
+            width: calc(700px - 80px);
+            text-align: left;
+            padding-left: 80px;
+            opacity: 1;
+            transition: opacity 0.6s ease;
+        }
+
+        .timeline-content-right.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        /* Timeline Coin Image */
+        .timeline-coin-img {
+            width: 100%;
+            max-width: 300px;
+            height: auto;
+            display: block;
+            margin-bottom: 16px;
+        }
+
+        /* Timeline Coin Label */
+        .timeline-coin-label {
+            font-size: 14px;
+            font-weight: 700;
+            font-family: 'Playfair Display', Georgia, serif;
+            color: #ffffff;
+        }
+
+        /* Hidden utility class */
+        .hidden {
+            opacity: 0 !important;
+            pointer-events: none;
+        }
+
+        /* Section 9 - Queen Elizabeth II Memorial */
+        .section-9 {
+            background: #000000;
+            color: #ffffff;
+            min-height: 100vh;
+            padding-top: 80px;
+            padding-bottom: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .section-9-container {
+            max-width: 900px;
+            margin: 0 auto;
+            text-align: center;
+        }
+
+        .queen-memorial-section {
+            margin-bottom: 60px;
+        }
+
+        .queen-memorial-main-title {
+            font-size: 64px;
+            font-weight: 400;
+            letter-spacing: 8px;
+            margin-bottom: 20px;
+            font-family: 'Playfair Display', Georgia, serif;
+        }
+
+        .queen-memorial-main-dates {
+            font-size: 60px;
+            font-weight: 400;
+            letter-spacing: 6px;
+            margin-bottom: 50px;
+            font-family: 'Playfair Display', Georgia, serif;
+        }
+
+        .memorial-text-content p {
+            font-size: 17px;
+            line-height: 1.9;
+            margin-bottom: 30px;
+            font-family: 'Playfair Display', Georgia, serif;
+            text-align: center;
+        }
+
+        .queen-final-portrait-large {
+            margin-top: 60px;
+            display: flex;
+            justify-content: center;
+            position: relative;
+            width: 100%;
+            max-width: 500px;
+            margin-left: auto;
+            margin-right: auto;
+            aspect-ratio: 500 / 667;
+        }
+
+        .queen-portrait-static,
+        .queen-portrait-video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 0;
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+
+        .queen-portrait-static {
+            z-index: 2;
+            transition: opacity 0.5s ease;
+        }
+
+        .queen-portrait-static.fade-out {
+            opacity: 0;
+        }
+
+        .queen-portrait-video {
+            z-index: 1;
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <!-- ========== BOOK INTRO SECTION ========== -->
+    <div class="intro-section" id="introSection">
+        <div class="book-wrapper">
+            <div class="book-container" id="bookContainer">
+                <!-- Left page (hidden initially, shows after opening) -->
+                <div class="page-left">
+                    <div class="page-image-container">
+                        <img src="2.jpg"Queen Elizabeth II Coronation">
+                    </div>
+                </div>
+
+                <!-- Right page with cover (flips open) -->
+                <div class="page-right-container" id="pageRightContainer">
+                    <!-- Front cover -->
+                    <div class="cover-front">
+                        <div class="cover-title">Queen</div>
+                        <div class="cover-main-title">Elizabeth II</div>
+                        <div class="queen-portrait">
+                            <img src="1.png" alt="Queen Elizabeth II">
+                        </div>
+                        <div class="cover-subtitle">A Journey in Coins</div>
+                        <div class="cover-author">Ingrid MacIntosh Cai</div>
+                    </div>
+                    <!-- Back of cover (inside page) -->
+                    <div class="cover-back">
+                        <div class="page-image-container">
+                            <img src="3.png" alt="Queen Elizabeth II with Attendants">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="click-hint">ENTER THE STORY</div>
+        </div>
+    </div>
+
+    <!-- Background Music Player (Hidden) -->
+    <div id="musicPlayer" style="position: fixed; top: -200px; left: -400px; z-index: -1; pointer-events: none;">
+        <iframe
+            id="soundcloud-player"
+            width="300"
+            height="166"
+            scrolling="no"
+            frameborder="no"
+            allow="autoplay"
+            src="https://w.soundcloud.com/player/?url=https://soundcloud.com/bandoflegends/god-save-the-queen-classical&color=%23ff5500&auto_play=false&hide_related=true&show_comments=false&show_user=false&show_reposts=false&show_teaser=false&visual=false">
+        </iframe>
+    </div>
+
+    <!-- ========== MAIN WEBSITE CONTENT ========== -->
+    <div class="main-content" id="mainContent">
+        <!-- Header -->
+        <header class="header light" id="header">
+            <div class="logo">ELIZABETH II</div>
+        </header>
+
+        <!-- Section 1: Title Page -->
+        <section class="section-1" id="section1">
+            <div class="title-image-container">
+                <img src="5.png" alt="From Metal to Memory - Queen Elizabeth II">
+                <div class="title-overlay">
+                    <div class="title-overlay-main">FROM METAL TO MEMORY</div>
+                    <div class="title-overlay-subtitle">Four portraits, seventy years, one legacy engraved in Canada's coins.</div>
+                </div>
+            </div>
+            <div class="coin-button-container">
+                <button class="coin-button" id="coinButton" aria-label="Enter the story"></button>
+                <div class="click-text">CLICK HERE</div>
+            </div>
+        </section>
+
+        <!-- Section 2: When Did You Last Touch -->
+        <section class="section-2" id="section2">
+            <div class="section-2-container">
+                <div class="touch-question">
+                    <div class="touch-question-line" id="line1"></div>
+                    <div class="touch-question-line" id="line2"></div>
+                    <div class="touch-question-line" id="line3"></div>
+                </div>
+                <div class="quarter-coin-container" id="quarterCoinContainer">
+                    <div class="quarter-coin" id="quarterCoin">
+                        <div class="coin-front">
+                            <img src="53.png" alt="Canadian Quarter Front">
+                        </div>
+                        <div class="coin-back">
+                            <img src="54.png" alt="Canadian Quarter Back">
+                        </div>
+                    </div>
+                    <p class="flip-instruction">Click to flip</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 3: Yellow Circle -->
+        <section class="section-3" id="section3">
+            <div class="yellow-circle" id="yellowCircle"></div>
+            <div class="section-3-content">
+                <p class="section-3-text">
+                    In 1953, a young queen's face appeared on Canadian coins for the first time, Not on stamps, not in paintings — but in the hands of millions. These coins carried her story into everyday life. These becoming one of the most touched images in the nation's history. Seventy years later, both the Queen and the coins that bore her image would fade together into memory.
+                </p>
+                <div class="section-3-image-container">
+                    <img src="6.png" alt="Queen Elizabeth II Portrait 1953">
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 4: Timeline -->
+        <section class="section-4" id="timelineSection">
+            <div class="timeline-container">
+                <div class="timeline-left" id="timelineImages">
+                    <!-- Images will be added dynamically -->
+                </div>
+                <div class="timeline-right">
+                    <!-- Progress Bar -->
+                    <div class="timeline-progress-bar">
+                        <div class="progress-bar-track"></div>
+                        <div class="progress-bar-fill"></div>
+                        <div class="progress-indicator"></div>
+                    </div>
+
+                    <div class="timeline-dot-container">
+                        <div class="time-dot" id="timeDot">
+                            <span style="font-size: 0;"></span>
+                        </div>
+                        <span class="time-text" id="timeText">1953</span>
+                    </div>
+
+                    <div class="timeline-content" id="timelineContent">
+                        <!-- Content will be updated dynamically -->
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 5: The Quarter's World -->
+        <section class="section-5">
+            <div class="section-5-container">
+                <h2 class="section-5-title">THE QUARTER'S WORLD</h2>
+
+                <!-- Row 1: Donut Shop Image + Short Text Snippets -->
+                <div class="quarter-row">
+                    <div class="quarter-image-left">
+                        <img src="24.png" alt="Donut Shop in 1953">
+                    </div>
+                    <div class="quarter-text-content">
+                        <p><strong>Slip</strong> one into a payphone, and you could call across the city.</p>
+                        <p><strong>Drop</strong> it on a diner counter, and a cup of coffee appeared.</p>
+                        <p><strong>Hand</strong> it to a TTC collector, and the streetcar doors opened.</p>
+                    </div>
+                </div>
+
+                <!-- Row 2: Text + Protester Image -->
+                <div class="quarter-row">
+                    <div class="quarter-text-content">
+                        <p>In 1953, this single coin moved through dozens of hands each day, from the newsboy on Yonge Street to the baker on Queen, from the TTC collector to the parking meter on Bay.</p>
+                        <p>Unlike the dollar - too precious to spend casually. Unlike the nickel - too small for most things.</p>
+                        <p><em>The quarter was just right.</em></p>
+                    </div>
+                    <div class="quarter-image-right">
+                        <img src="25.png" alt="Protester in 1953">
+                    </div>
+                </div>
+
+                <!-- Row 3: Phone Image + Text -->
+                <div class="quarter-row">
+                    <div class="quarter-image-left">
+                        <img src="26.png" alt="Payphone">
+                    </div>
+                    <div class="quarter-text-content">
+                        <p>It fit every vending machine slot, every coin phone, every parking meter. Shops kept rolls of them.</p>
+                        <p><em>Children saved them. Adults carried handfuls.</em></p>
+                    </div>
+                </div>
+
+                <!-- Row 4: Text + Image -->
+                <div class="quarter-row">
+                    <div class="quarter-text-content">
+                        <p>And every single time it moved, someone touched the Queen's face.</p>
+                        <p>Not once or twice, but again and again, millions of times across the country.</p>
+                        <p><strong>A quarter, a paper ticket, and a bus ride</strong> - that's where she lived, traveling quietly with Canadians through daily life.</p>
+                    </div>
+                    <div class="quarter-image-right">
+                        <img src="34.png" alt="Transit Tickets">
+                    </div>
+                </div>
+
+                <!-- Footer -->
+                <div class="quarter-footer">
+                    <p>THE QUARTER WAS CANADA'S</p>
+                    <p>WORKHORSE COIN. EVERYWHERE IT WENT,</p>
+                    <p>SO DID SHE.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 6: A Coin Died -->
+        <section class="section-6">
+            <div class="section-6-container">
+                <div class="coin-died-content">
+                    <!-- Left Column -->
+                    <div class="coin-died-left">
+                        <div class="queen-final-portrait">
+                            <img src="36.png" alt="Queen Elizabeth II Final Portrait">
+                        </div>
+                        <p class="portrait-caption">The Queen's most beautiful face watched the first coin die. Beauty witnessing loss.</p>
+
+                        <!-- 4 Pennies Grid (2x2) -->
+                        <div class="left-pennies-grid">
+                            <img src="38.png" alt="Canadian Penny 2">
+                            <img src="41.png" alt="Canadian Penny 5">
+                            <img src="40.png" alt="Canadian Penny 4">
+                            <img src="42.png" alt="Canadian Penny 6">
+                        </div>
+                    </div>
+
+                    <!-- Right Column -->
+                    <div class="coin-died-right">
+                        <h2 class="section-6-title">A COIN DIED</h2>
+                        <h3 class="death-subtitle">The First Death (2013)</h3>
+
+                        <p class="death-date">Ten years into the Queen's final portrait, the Royal Canadian Mint struck the last penny.</p>
+
+                        <p class="death-emphasis">Not with protest. Not with ceremony. Just economics.</p>
+
+                        <p class="death-text">It cost 1.6 cents to make a 1-cent coin. Canada became the first G7 nation to eliminate its smallest coin.</p>
+
+                        <p class="death-text">No public outrage. No nostalgia campaigns. Rounding rules replaced cents. Pennies vanished from registers within months. They became souvenirs — tiny relics of a country that quietly moved on.</p>
+
+                        <p class="death-realization">And for the first time,Canadians realized:</p>
+
+                        <p class="death-quote">"Coins are not eternal. They can disappear."</p>
+
+                        <!-- Bottom Penny - Flippable -->
+                        <div class="bottom-pennies">
+                            <div class="section6-coin" onclick="this.classList.toggle('flipped')">
+                                <div class="section6-coin-front">
+                                    <img src="39.png" alt="Canadian Penny Front">
+                                </div>
+                                <div class="section6-coin-back">
+                                    <img src="37.png" alt="Canadian Penny Back">
+                                </div>
+                            </div>
+                        </div>
+                        <p class="penny-caption">1 Cents Elizabeth II (1956) Canada Coin</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 7: The Beginning of the End -->
+        <section class="section-7">
+            <div class="section-7-container">
+                <!-- Initial state: two coins -->
+                <div class="copper-coins-container initial-coins" id="initialCoins">
+                    <div class="copper-coin clickable-coin">
+                        <img src="48.png" alt="Canadian Penny 1">
+                    </div>
+                    <div class="copper-coin clickable-coin">
+                        <img src="49.png" alt="Canadian Penny 2">
+                    </div>
+                </div>
+                <!-- After click: single broken coin -->
+                <div class="copper-coins-container final-coin hidden" id="finalCoin">
+                    <div class="copper-coin">
+                        <img src="47.png" alt="Broken Canadian Pennies">
+                    </div>
+                </div>
+                <p class="copper-ending-text">THE BEGINNING OF THE END HAS ARRIVED......</p>
+            </div>
+        </section>
+
+        <!-- Section 8: When Metal Becomes Memory -->
+        <section class="section-8">
+            <div class="section-8-container">
+                <h2 class="metal-memory-title">WHEN METAL BECOMES MEMORY</h2>
+
+                <div class="vertical-timeline">
+                    <!-- Vertical Axis -->
+                    <div class="timeline-axis-vertical"></div>
+
+                    <!-- Timeline Item 1: 1950s -->
+                    <div class="timeline-item" data-index="0">
+                        <div class="timeline-content-left hidden" id="content-left-0">
+                            <div class="timeline-branch-left"></div>
+                            <div class="timeline-year-left">1950's</div>
+                            <h3 class="timeline-item-title">THE BEGINNING</h3>
+                            <p class="timeline-item-subtitle">When cash was the only option</p>
+                            <p class="timeline-item-text">A young Queen's face appeared on coins, and these clunky metal disks flowed from the powerful to the casual. People carried transaction-related devices everywhere: from the penny-saved to the rainstick of loose change. Every transaction required physical metal in your hand — acceptance of daily life.</p>
+                            <p class="timeline-item-text">But the coin-as-pay-pays, like portrait, would never quietly thought not before. Cash moved a people's day-to-day inferred in future context in pockets. Stores trusted in cash.</p>
+                        </div>
+                        <div class="timeline-dot-clickable" id="dot-0" onclick="toggleTimelineItem(0)">
+                            <img src="65.png" alt="Timeline Dot">
+                        </div>
+                        <div class="timeline-content-right hidden" id="content-right-0">
+                            <img src="69.png" alt="1950s Coin" class="timeline-coin-img">
+                            <p class="timeline-coin-label">Cash Usage: 99%</p>
+                        </div>
+                    </div>
+
+                    <!-- Timeline Item 2: 2016 -->
+                    <div class="timeline-item" data-index="1">
+                        <div class="timeline-content-left hidden" id="content-left-1">
+                            <div class="timeline-branch-left"></div>
+                            <div class="timeline-year-left">2016</div>
+                            <h3 class="timeline-item-title">THE MOMENT NO ONE NOTICED</h3>
+                            <p class="timeline-item-text">It began with silence — or rather, the absence of it.</p>
+                            <p class="timeline-item-text">Small black squares appear beside cash registers at convenience stores and Tim Hortons. A few early adopters wave their cards, very transaction ritualized.</p>
+                            <p class="timeline-item-text">People carried in pockets. Stores trusted cash. But the coin-as-pay-pays like portrait, calmly carried in pockets. Stores trusted in cash — but the first...</p>
+                        </div>
+                        <div class="timeline-dot-clickable" id="dot-1" onclick="toggleTimelineItem(1)">
+                            <img src="66.png" alt="Timeline Dot">
+                        </div>
+                        <div class="timeline-content-right hidden" id="content-right-1">
+                            <img src="70.png" alt="2016 Coin" class="timeline-coin-img">
+                            <p class="timeline-coin-label">Cash Usage: 41%</p>
+                        </div>
+                    </div>
+
+                    <!-- Timeline Item 3: 2018 -->
+                    <div class="timeline-item" data-index="2">
+                        <div class="timeline-content-left hidden" id="content-left-2">
+                            <div class="timeline-branch-left"></div>
+                            <div class="timeline-year-left">2018</div>
+                            <h3 class="timeline-item-title">THE FORGETTING BEGINS</h3>
+                            <p class="timeline-item-subtitle">When people never used</p>
+                            <p class="timeline-item-text">2016. Apple Pay and Google Pay arrive in Canada. Now your phone is your wallet.</p>
+                            <p class="timeline-item-text">No coins. No bills. No change counted back into your palm, will warm from someone else's hands.</p>
+                            <p class="timeline-item-text">Canadians realized that something strange A TTC rider buys their tickets to the reader, the quarters never go back. Coins become relics. Coins went from their pockets. Tapping became the way.</p>
+                            <p class="timeline-item-text">She's still there — in jars on dressers, in car consoles, in forgotten coat pockets, the faces hasn't touch them in...</p>
+                        </div>
+                        <div class="timeline-dot-clickable" id="dot-2" onclick="toggleTimelineItem(2)">
+                            <img src="67.png" alt="Timeline Dot">
+                        </div>
+                        <div class="timeline-content-right hidden" id="content-right-2">
+                            <img src="71.png" alt="2018 Coin" class="timeline-coin-img">
+                            <p class="timeline-coin-label">Cash Usage: 33%</p>
+                        </div>
+                    </div>
+
+                    <!-- Timeline Item 4: 2020 -->
+                    <div class="timeline-item" data-index="3">
+                        <div class="timeline-content-left hidden" id="content-left-3">
+                            <div class="timeline-branch-left"></div>
+                            <div class="timeline-year-left">2020</div>
+                            <h3 class="timeline-item-title">THE LAST TOUCH</h3>
+                            <p class="timeline-item-subtitle">When touch became dangerous</p>
+                            <p class="timeline-item-text">2020, people stopped asking: Do you have change? Stopped machine turned to the workforce coin for 70 years — became optional, then rare.</p>
+                            <p class="timeline-item-text">Then — everything changed.</p>
+                            <p class="timeline-item-text">March 11, 2020. Everything. Suddenly, touching anything feels dangerous. Stores post signs: "Cash NOT Accepted," AVOID Debit &amp; Credit Only.</p>
+                            <p class="timeline-item-text">Within weeks, the "change is total. Coins are not worthless — just the coin, like cash, like bills pockets anymore. Digital replace everything — the coin, like cash, like the through transactions — just irrelevant.</p>
+                        </div>
+                        <div class="timeline-dot-clickable" id="dot-3" onclick="toggleTimelineItem(3)">
+                            <img src="68.png" alt="Timeline Dot">
+                        </div>
+                        <div class="timeline-content-right hidden" id="content-right-3">
+                            <img src="72.png" alt="2020 Coin" class="timeline-coin-img">
+                            <p class="timeline-coin-label">Cash Usage: 20%</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 9: Queen Elizabeth II Memorial -->
+        <section class="section-9">
+            <div class="section-9-container">
+                <!-- Memorial Title -->
+                <div class="queen-memorial-section">
+                    <h2 class="queen-memorial-main-title">QUEEN ELIZABETH II</h2>
+                    <p class="queen-memorial-main-dates">1926 - 2022</p>
+                </div>
+
+                <!-- Memorial Text -->
+                <div class="memorial-text-content">
+                    <p>Queen Elizabeth II dies after 70 years on the throne. But something strange has already happened: most Canadians haven't held a coin in weeks. Her final portrait still sits on 25-cent pieces, but the quarters are untouched — in drawers, coat pockets, car cup holders, jars collecting dust. The metal remains, but the memory is fading.</p>
+                    <p>When coins disappear, so do the small rituals they carried: the weight in a hand, the sound of change, the habit of giving a child "a coin for luck." For decades, her portrait passed quietly through cash registers and across counters, connecting everyday life to history. Now it survives only in stillness.</p>
+                    <p>No one remembers the exact moment we stopped reaching into our pockets and started tapping our phones. The shift was silent. Now it lives in forgotten drawers and in memory alone.</p>
+                </div>
+
+                <!-- Queen Portrait with Video Transition -->
+                <div class="queen-final-portrait-large">
+                    <img src="52.png" alt="Queen Elizabeth II Final Portrait" id="queenStaticImage" class="queen-portrait-static">
+                    <video id="queenVideo" class="queen-portrait-video" muted playsinline style="display: none;">
+                        <source src="73.mp4" type="video/mp4">
+                    </video>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <script>
+        // ========== BOOK ANIMATION SCRIPT ==========
+        console.log('Script loaded');
+
+        const bookContainer = document.getElementById('bookContainer');
+        const pageRightContainer = document.getElementById('pageRightContainer');
+        const introSection = document.getElementById('introSection');
+        const mainContent = document.getElementById('mainContent');
+        let bookState = 'closed';
+
+        console.log('Elements found:', {
+            bookContainer: !!bookContainer,
+            pageRightContainer: !!pageRightContainer,
+            introSection: !!introSection,
+            mainContent: !!mainContent
+        });
+
+        // Click on cover to open book
+        if (pageRightContainer) {
+            console.log('Adding click listener to pageRightContainer');
+
+            pageRightContainer.addEventListener('click', (e) => {
+                console.log('Book clicked!', 'Current state:', bookState);
+                console.log('Click event:', e);
+
+                if (bookState === 'closed') {
+                    console.log('Opening book...');
+                    bookState = 'opening';
+                    bookContainer.classList.add('opening');
+
+                    // Start background music
+                    if (window.startBackgroundMusic) {
+                        window.startBackgroundMusic();
+                    }
+
+                    // After flip animation completes (2.5s), keep book open for 1 second, then fade to main site
+                    setTimeout(() => {
+                        bookContainer.classList.remove('opening');
+                        bookContainer.classList.add('opened');
+                        bookState = 'opened';
+                        console.log('Book opened');
+
+                        // Start fade out after 1 second
+                        setTimeout(() => {
+                            // Set scroll position to top BEFORE showing main content
+                            window.scrollTo({ top: 0, behavior: 'auto' });
+
+                            introSection.classList.add('fade-out');
+                            mainContent.classList.add('visible');
+                            console.log('Starting fade out');
+
+                            // Remove intro section completely after fade completes
+                            setTimeout(() => {
+                                introSection.classList.add('hidden');
+
+                                // Ensure we're at the top before enabling scroll
+                                window.scrollTo({ top: 0, behavior: 'auto' });
+                                document.body.style.overflow = 'auto';
+
+                                console.log('Intro hidden, scrolling enabled');
+                            }, 1000);
+                        }, 1000);
+                    }, 2500);
+                } else {
+                    console.log('Book already in state:', bookState);
+                }
+            });
+
+            // Test with mousedown as well
+            pageRightContainer.addEventListener('mousedown', () => {
+                console.log('Mousedown detected on book');
+            });
+        } else {
+            console.error('pageRightContainer not found!');
+        }
+
+        // Prevent scrolling during intro
+        document.body.style.overflow = 'hidden';
+        console.log('Scrolling disabled');
+
+        // ========== MAIN WEBSITE SCRIPTS ==========
+        
+        // Coin button in Section 1 - scroll to Section 2
+        const coinButton = document.getElementById('coinButton');
+        if (coinButton) {
+            coinButton.addEventListener('click', () => {
+                const section2 = document.querySelector('.section-2');
+                if (section2) {
+                    section2.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            });
+        }
+
+        // Quarter coin in Section 2 - flip with infinite flips and 1s delay before section 3
+        const quarterCoin = document.getElementById('quarterCoin');
+        let isFirstFlip = true;
+        let isFlipping = false;
+        
+        if (quarterCoin) {
+            quarterCoin.addEventListener('click', () => {
+                if (!isFlipping) {
+                    isFlipping = true;
+                    
+                    // Toggle the coin flip
+                    quarterCoin.classList.toggle('flipped');
+                    
+                    // If this is the first flip, trigger transition to Section 3 after 1s
+                    if (isFirstFlip) {
+                        isFirstFlip = false;
+                        setTimeout(() => {
+                            const section3 = document.querySelector('.section-3');
+                            if (section3) {
+                                // Enable Section 3 animation
+                                allowSection3Animation = true;
+                                section3.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                            }
+                        }, 1000);
+                    }
+                    
+                    // Reset the flipping state after animation completes
+                    setTimeout(() => {
+                        isFlipping = false;
+                    }, 800); // Match the flip animation duration
+                }
+            });
+        }
+
+        // Timeline data
+        const timelineData = [
+            {
+                time: '1953-1964',
+                title: 'YOUTH & CORONATION',
+                subtitle: 'A New Reign Begins',
+                description: 'At 25, Queen Elizabeth II\'s youthful portrait appeared on Canadian coins, wearing a classical laurel wreath is symbolized hope and optimism.',
+                description2: 'During the post-war boom, these coins circulated everywhere, people could buy coffee, bus tickets, and newspapers - making her face the most touched image in Canada.',
+                description3: 'Metal was memory, and Canadians carried the Queen in their pockets every single day.',
+                coinCaption: '25 Cents Elizabeth II (1953-1964) Canada Silver Coin.<br>The back of the coin featured Canada\'s caribou (a type of deer), which has been used since 1937.',
+                bgColor: '#2a2520',
+                bgImage: '9.png',
+                dotClass: 'white',
+                dotImage: '11.png',
+                showCTA: false,
+                showCoins: true,
+                coinImages: ['8.png', '7.png'],
+                images: ['10.png'],
+                isSpecial: true
+            },
+            {
+                time: '1965 - 1989',
+                title: 'THE SECOND PORTRAIT',
+                subtitle: 'A Nation Changing, and So Did She.',
+                description: 'Twenty-five years is a long time. By 1965, the young queen with the laurel wreath was gone. In her place: a woman at 39, wearing a simpler diamond tiara.',
+                description2: 'British sculptor Arnold Machin didn\'t hide what those years had carved into her face. Fine lines had begun to appear. The weight of decades, visible in millimeters.',
+                description3: 'This was no longer the hopeful monarch of the 1950s. This was a Queen who carried responsibility. And the metal changed too. In 1968, silver gave way to nickel – darker, heavier, more worn with use.',
+                description4: 'Metal was aging. Just as she was.',
+                coinCaption: '25 Cents Elizabeth II (1965-1989) Canada Nickel Coin',
+                bgColor: '#2a2520',
+                bgImage: '9.png',
+                dotClass: 'white',
+                dotImage: '12.png',
+                showCTA: false,
+                showCoins: true,
+                coinImages: ['13.png', '14.png'],
+                images: ['15.png'],
+                isSpecial: true
+            },
+            {
+                time: '1990 - 2003',
+                title: 'THE THIRD PORTRAIT',
+                subtitle: 'Honesty in Metal',
+                description: 'At 64, the Queen\'s face told the truth. For the first time, a Canadian artist—Dora de Pédery-Hunt—carved a portrait unafraid of age.',
+                description2: 'Deeper lines. The weight of decades. Honest, unidealized, human.',
+                description3: 'But while her image grew more real, the world around these coins was becoming less tangible. Credit cards emerged. Debit terminals appeared in stores. Children still saved quarters in piggy banks, but their parents were learning to tap instead of pay.',
+                description4: 'The metal remained. But something was shifting. The digital revolution had begun.',
+                coinCaption: '25 Cents Elizabeth II (1990-2004)',
+                bgColor: '#2a2520',
+                bgImage: '9.png',
+                dotClass: 'white',
+                dotImage: '17.png',
+                showCTA: false,
+                showCoins: true,
+                coinImages: ['18.png', '19.png'],
+                images: ['16.png'],
+                isSpecial: true
+            },
+            {
+                time: '2003',
+                title: 'THE MOST BEAUTIFUL PORTRAIT',
+                subtitle: 'Beauty Meets Decline',
+                description: 'In 2003, the Queen appeared on coins for the fourth and final time. She was 77 years old.',
+                description2: 'No crown. No tiara. No royal symbols.',
+                description3: 'Just her face — calm, wise, deeply human. People called it the most beautiful of all her portraits.',
+                description4: 'But 2003 was also when everything changed. Tap payment arrived. Contactless cards emerged. The most beautiful portrait appeared precisely when coins themselves began to disappear.',
+                description5: 'Beauty and decline, meeting in metal.',
+                coinCaption: '25 Cents Elizabeth II (2003)<br>The last portrait Canadians would hold.',
+                bgColor: '#2a2520',
+                bgImage: '9.png',
+                dotClass: 'white',
+                dotImage: '21.png',
+                showCTA: false,
+                showCoins: true,
+                coinImages: ['22.png', '23.png'],
+                images: ['20.png'],
+                isSpecial: true
+            }
+        ];
+
+        let currentIndex = 0;
+        let hasExpandedCircle = false;
+        let hasDroppedCircle = false;
+        let allowSection3Animation = false;
+
+        // Initialize timeline images
+        function initializeImages() {
+            const container = document.getElementById('timelineImages');
+            timelineData.forEach((data, index) => {
+                data.images.forEach((imageSource, imgIndex) => {
+                    const div = document.createElement('div');
+                    div.className = 'timeline-image';
+                    
+                    // Check if it's a URL or a color
+                    if (imageSource.startsWith('#')) {
+                        div.style.background = imageSource;
+                    } else {
+                        div.style.backgroundImage = `url('${imageSource}')`;
+                        div.style.backgroundSize = 'cover';
+                        div.style.backgroundPosition = 'center';
+                    }
+                    
+                    div.dataset.index = index;
+                    div.dataset.imgIndex = imgIndex;
+                    container.appendChild(div);
+                });
+            });
+            updateImages();
+        }
+
+        // Update timeline images
+        function updateImages() {
+            const images = document.querySelectorAll('.timeline-image');
+            images.forEach((img) => {
+                const index = parseInt(img.dataset.index);
+                img.classList.toggle('active', index === currentIndex);
+            });
+        }
+
+        // Header color change on scroll
+        window.addEventListener('scroll', () => {
+            const header = document.getElementById('header');
+            const scrollPos = window.scrollY;
+            const section1 = document.querySelector('.section-1');
+            const section3 = document.querySelector('.section-3');
+            const section4 = document.getElementById('timelineSection');
+            
+            const section1Bottom = section1.offsetTop + section1.offsetHeight;
+            const section3Top = section3.offsetTop;
+            const section3Bottom = section3Top + section3.offsetHeight;
+            const section4Top = section4.offsetTop;
+
+            // Show/hide header based on scroll position
+            // Hide header when on title page (Section 1)
+            if (scrollPos < section1Bottom - 100) {
+                header.classList.remove('visible');
+            } else {
+                header.classList.add('visible');
+            }
+
+            // Header color based on section
+            // Section 1 (white) and Section 3 (white) use light header (dark text)
+            // Section 4 timeline changes based on time
+            if (scrollPos < section1Bottom || (scrollPos >= section3Top - 100 && scrollPos < section4Top - 100)) {
+                header.classList.remove('dark');
+                header.classList.add('light');
+            } else {
+                header.classList.remove('light');
+                header.classList.add('dark');
+            }
+
+            // Yellow circle animations - only trigger if clicked from Section 2
+            const yellowCircle = document.getElementById('yellowCircle');
+            const expandTrigger = section3Top - window.innerHeight / 2;
+            const shrinkTrigger = section3Bottom - window.innerHeight / 2;
+
+            if (allowSection3Animation && scrollPos >= expandTrigger && !hasExpandedCircle) {
+                yellowCircle.classList.add('expand');
+                hasExpandedCircle = true;
+            }
+
+            if (allowSection3Animation && scrollPos >= shrinkTrigger && !hasDroppedCircle) {
+                yellowCircle.classList.add('shrink');
+                hasDroppedCircle = true;
+            }
+        });
+
+        // Update timeline content
+        function updateTimeline() {
+            const data = timelineData[currentIndex];
+
+            // Update progress bar
+            const totalSteps = timelineData.length;
+            const progressPercentage = (currentIndex / (totalSteps - 1)) * 100;
+            const progressFill = document.querySelector('.progress-bar-fill');
+            const progressIndicator = document.querySelector('.progress-indicator');
+
+            if (progressFill) {
+                progressFill.style.width = progressPercentage + '%';
+            }
+
+            if (progressIndicator) {
+                progressIndicator.style.left = 'calc(' + progressPercentage + '% - 10px)';
+            }
+
+            // Update dot
+            const dot = document.getElementById('timeDot');
+            dot.className = 'time-dot ' + data.dotClass;
+            
+            // Update dot image if provided
+            if (data.dotImage) {
+                dot.style.backgroundImage = `url('${data.dotImage}')`;
+                dot.classList.add('has-image');
+            } else {
+                dot.style.backgroundImage = '';
+                dot.classList.remove('has-image');
+            }
+            
+            // Update time
+            document.getElementById('timeText').textContent = data.time;
+            
+            // Update background
+            const section = document.getElementById('timelineSection');
+            section.style.background = data.bgColor;
+            
+            // Update background image
+            if (data.bgImage) {
+                section.style.setProperty('--bg-image', `url('${data.bgImage}')`);
+                section.classList.add('has-background');
+                const beforeElement = section.querySelector('::before') || section;
+                section.style.setProperty('background-image', 'none');
+                const style = document.createElement('style');
+                style.textContent = `#timelineSection::before { background-image: url('${data.bgImage}') !important; }`;
+                document.head.appendChild(style);
+            } else {
+                section.classList.remove('has-background');
+            }
+            
+            // Update dark/light mode
+            if (data.bgColor === '#1a1a1a' || data.bgColor === '#2a2520') {
+                section.classList.add('dark');
+            } else {
+                section.classList.remove('dark');
+            }
+
+            // Update content - check if special layout
+            let html = '';
+            
+            if (data.isSpecial) {
+                // Special layout for 1953
+                html = `
+                    <h3 class="timeline-special-header">${data.title}</h3>
+                    <p class="timeline-special-subtitle">${data.subtitle}</p>
+                    <p class="timeline-special-text">${data.description}</p>
+                `;
+
+                if (data.description2) {
+                    html += `<p class="timeline-special-text">${data.description2}</p>`;
+                }
+
+                if (data.description3) {
+                    html += `<p class="timeline-special-text">${data.description3}</p>`;
+                }
+
+                if (data.description4) {
+                    html += `<p class="timeline-special-text">${data.description4}</p>`;
+                }
+
+                if (data.description5) {
+                    html += `<p class="timeline-special-text">${data.description5}</p>`;
+                }
+                
+                if (data.showCoins && data.coinImages) {
+                    html += `<div class="timeline-coins-container">`;
+                    if (currentIndex === 0) {
+                        // First row - 8.PNG flips to 7.PNG
+                        html += `
+                            <div class="timeline-coin" onclick="this.classList.toggle('flipped')">
+                                <div class="timeline-coin-front">
+                                    <img src="8.png" alt="Coin Front" class="timeline-coin-image">
+                                </div>
+                                <div class="timeline-coin-back">
+                                    <img src="7.png" alt="Coin Back" class="timeline-coin-image">
+                                </div>
+                            </div>
+                            <div class="timeline-coin" onclick="this.classList.toggle('flipped')">
+                                <div class="timeline-coin-front">
+                                    <img src="58.png" alt="Coin Front" class="timeline-coin-image">
+                                </div>
+                                <div class="timeline-coin-back">
+                                    <img src="57.png" alt="Coin Back" class="timeline-coin-image">
+                                </div>
+                            </div>`;
+                    } else if (currentIndex === 1) {
+                        // Second row - 14.PNG flips to 13.PNG
+                        html += `
+                            <div class="timeline-coin" onclick="this.classList.toggle('flipped')">
+                                <div class="timeline-coin-front">
+                                    <img src="14.png" alt="Coin Front" class="timeline-coin-image">
+                                </div>
+                                <div class="timeline-coin-back">
+                                    <img src="13.png" alt="Coin Back" class="timeline-coin-image">
+                                </div>
+                            </div>
+                            <div class="timeline-coin" onclick="this.classList.toggle('flipped')">
+                                <div class="timeline-coin-front">
+                                    <img src="59.png" alt="Coin Front" class="timeline-coin-image">
+                                </div>
+                                <div class="timeline-coin-back">
+                                    <img src="60.png" alt="Coin Back" class="timeline-coin-image">
+                                </div>
+                            </div>`;
+                    } else if (currentIndex === 2) {
+                        // Third row - 18.PNG flips to 19.PNG and 61.PNG flips to 62.PNG
+                        html += `
+                            <div class="timeline-coin" onclick="this.classList.toggle('flipped')">
+                                <div class="timeline-coin-front">
+                                    <img src="18.png" alt="Coin Front" class="timeline-coin-image">
+                                </div>
+                                <div class="timeline-coin-back">
+                                    <img src="19.png" alt="Coin Back" class="timeline-coin-image">
+                                </div>
+                            </div>
+                            <div class="timeline-coin" onclick="this.classList.toggle('flipped')">
+                                <div class="timeline-coin-front">
+                                    <img src="61.png" alt="Coin Front" class="timeline-coin-image">
+                                </div>
+                                <div class="timeline-coin-back">
+                                    <img src="62.png" alt="Coin Back" class="timeline-coin-image">
+                                </div>
+                            </div>`;
+                    } else if (currentIndex === 3) {
+                        // Fourth row - 22.PNG flips to 23.PNG and 63.PNG flips to 64.PNG
+                        html += `
+                            <div class="timeline-coin" onclick="this.classList.toggle('flipped')">
+                                <div class="timeline-coin-front">
+                                    <img src="22.png" alt="Coin Front" class="timeline-coin-image">
+                                </div>
+                                <div class="timeline-coin-back">
+                                    <img src="23.png" alt="Coin Back" class="timeline-coin-image">
+                                </div>
+                            </div>
+                            <div class="timeline-coin" onclick="this.classList.toggle('flipped')">
+                                <div class="timeline-coin-front">
+                                    <img src="63.png" alt="Coin Front" class="timeline-coin-image">
+                                </div>
+                                <div class="timeline-coin-back">
+                                    <img src="64.png" alt="Coin Back" class="timeline-coin-image">
+                                </div>
+                            </div>`;
+                    } else {
+                        // Other rows - normal coin images
+                        data.coinImages.forEach(img => {
+                            html += `<img src="${img}" alt="Coin" class="timeline-coin-image">`;
+                        });
+                    }
+                    html += `</div>`;
+                }
+                
+                if (data.coinCaption) {
+                    html += `<p class="timeline-coin-caption">${data.coinCaption}</p>`;
+                }
+            } else {
+                // Normal layout
+                html = `
+                    <h3 class="timeline-title">${data.title}</h3>
+                    <p class="timeline-description">${data.description}</p>
+                `;
+
+                if (data.description2) {
+                    html += `<p class="timeline-description">${data.description2}</p>`;
+                }
+
+                if (data.showCTA) {
+                    html += `
+                        <div class="timeline-cta">
+                            <button class="cta-button">Explore the Collection</button>
+                        </div>
+                    `;
+                }
+            }
+
+            document.getElementById('timelineContent').innerHTML = html;
+            
+            // Update images
+            updateImages();
+        }
+
+        // Click on dot to advance
+        document.getElementById('timeDot').addEventListener('click', () => {
+            currentIndex = (currentIndex + 1) % timelineData.length;
+            updateTimeline();
+        });
+
+        // Removed keyboard and wheel navigation to allow natural scrolling
+        // Users can click on the dot to advance through timeline
+
+        // Add click handler to progress bar
+        const progressBar = document.querySelector('.timeline-progress-bar');
+        if (progressBar) {
+            progressBar.addEventListener('click', (e) => {
+                const rect = progressBar.getBoundingClientRect();
+                const clickX = e.clientX - rect.left;
+                const percentage = clickX / rect.width;
+                const totalSteps = timelineData.length;
+                const newIndex = Math.round(percentage * (totalSteps - 1));
+                currentIndex = Math.max(0, Math.min(newIndex, totalSteps - 1));
+                updateTimeline();
+                initializeImages();
+            });
+            progressBar.style.cursor = 'pointer';
+        }
+
+        // Initialize
+        initializeImages();
+        updateTimeline();
+
+        // ========== SECTION 2 ANIMATION ==========
+        // Text animation for Section 2
+        function animateTextLine(lineId, text) {
+            const lineElement = document.getElementById(lineId);
+            if (!lineElement) return;
+
+            lineElement.innerHTML = '';
+
+            // Split text into individual characters
+            const chars = text.split('');
+            chars.forEach((char, index) => {
+                const span = document.createElement('span');
+                span.textContent = char === ' ' ? '\u00A0' : char; // Use non-breaking space
+                lineElement.appendChild(span);
+
+                // Animate each character with delay
+                setTimeout(() => {
+                    span.classList.add('animate');
+                }, index * 100); // 0.1s interval
+            });
+
+            return chars.length * 100; // Return total animation time
+        }
+
+        // Initialize Section 2 animation when in view
+        const section2Observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    // Animate text lines
+                    const line1Time = animateTextLine('line1', 'WHEN DID YOU LAST TOUCH');
+                    const line2Time = animateTextLine('line2', 'A QUARTER?');
+
+                    // Show coin after all text is displayed (no auto-flip)
+                    const totalTextTime = Math.max(line1Time, line2Time);
+                    setTimeout(() => {
+                        const coinContainer = document.getElementById('quarterCoinContainer');
+                        if (coinContainer) {
+                            coinContainer.classList.add('show');
+                        }
+                    }, totalTextTime);
+
+                    // Disconnect observer after animation starts
+                    section2Observer.disconnect();
+                }
+            });
+        }, { threshold: 0.5 });
+
+        const section2 = document.getElementById('section2');
+        if (section2) {
+            section2Observer.observe(section2);
+        }
+
+        // ========== SECTION 6 PENNY ANIMATIONS (Click-triggered, Infinite Loop) ==========
+        let pennyAnimationStarted = false;
+
+        // Function to start penny disappear cycle (infinite loop)
+        function startPennyDisappearCycle() {
+            const pennies = document.querySelectorAll('.left-pennies-grid img');
+
+            // Start disappear animations for each penny
+            pennies.forEach((penny, index) => {
+                setTimeout(() => {
+                    penny.classList.add('penny-hide');
+                }, index * 5500); // 5000ms animation + 500ms delay between each
+            });
+
+            // After all pennies have disappeared, reset and restart cycle
+            setTimeout(() => {
+                // Remove all penny-hide classes to show pennies again
+                pennies.forEach(penny => {
+                    penny.classList.remove('penny-hide');
+                });
+
+                // Wait 1 second, then restart the cycle
+                setTimeout(() => {
+                    startPennyDisappearCycle();
+                }, 1000);
+            }, 21500); // 16500ms (last penny starts) + 5000ms (animation duration) = 21500ms
+        }
+
+        // ========== SECTION 5 FOOTER NAVIGATION ==========
+        const quarterFooter = document.querySelector('.quarter-footer');
+        if (quarterFooter) {
+            quarterFooter.addEventListener('click', () => {
+                const section6 = document.querySelector('.section-6');
+                if (section6) {
+                    section6.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+                    // Start penny disappear cycle after scroll (only once)
+                    if (!pennyAnimationStarted) {
+                        pennyAnimationStarted = true;
+                        setTimeout(() => {
+                            startPennyDisappearCycle();
+                        }, 800); // Wait for scroll to complete
+                    }
+                }
+            });
+        }
+
+        // ========== SECTION 7 COIN INTERACTION ==========
+        const clickableCoins = document.querySelectorAll('.clickable-coin');
+        const initialCoins = document.getElementById('initialCoins');
+        const finalCoin = document.getElementById('finalCoin');
+
+        clickableCoins.forEach(coin => {
+            coin.addEventListener('click', () => {
+                // Hide initial coins and show final coin
+                initialCoins.classList.add('hidden');
+                finalCoin.classList.remove('hidden');
+            });
+        });
+
+        // ========== SECTION 8 TIMELINE INTERACTION ==========
+        function toggleTimelineItem(index) {
+            const leftContent = document.getElementById('content-left-' + index);
+            const rightContent = document.getElementById('content-right-' + index);
+
+            if (leftContent && rightContent) {
+                // Toggle visibility for both left and right content
+                leftContent.classList.toggle('hidden');
+                rightContent.classList.toggle('hidden');
+            }
+        }
+
+        // ========== BACKGROUND MUSIC PLAYER ==========
+        // Load SoundCloud Widget API
+        let musicWidget = null;
+        let musicWidgetReady = false;
+
+        const scScript = document.createElement('script');
+        scScript.src = 'https://w.soundcloud.com/player/api.js';
+        scScript.onload = function() {
+            const iframe = document.querySelector('#soundcloud-player');
+            if (iframe) {
+                musicWidget = SC.Widget(iframe);
+
+                // Wait for widget to be ready
+                musicWidget.bind(SC.Widget.Events.READY, function() {
+                    musicWidgetReady = true;
+                    console.log('SoundCloud widget ready');
+
+                    // Enable looping when track finishes
+                    musicWidget.bind(SC.Widget.Events.FINISH, function() {
+                        console.log('Track finished, restarting...');
+                        musicWidget.seekTo(0);
+                        musicWidget.play();
+                    });
+                });
+            }
+        };
+        document.head.appendChild(scScript);
+
+        // Global function to start music (will be called when book is clicked)
+        window.startBackgroundMusic = function() {
+            console.log('startBackgroundMusic called, widgetReady:', musicWidgetReady);
+            if (musicWidget && musicWidgetReady) {
+                musicWidget.play();
+                console.log('Music play() called');
+            } else if (musicWidget) {
+                // Try again after a delay if widget not ready yet
+                setTimeout(function() {
+                    if (musicWidgetReady) {
+                        musicWidget.play();
+                        console.log('Music play() called (delayed)');
+                    }
+                }, 500);
+            }
+        };
+
+        // ========== SECTION 9 QUEEN PORTRAIT VIDEO TRANSITION (Auto-triggered, Infinite Loop) ==========
+        const queenStaticImage = document.getElementById('queenStaticImage');
+        const queenVideo = document.getElementById('queenVideo');
+        let isTransitioning = false;
+        let hasStarted = false;
+
+        // Set video playback speed to 0.5x
+        if (queenVideo) {
+            queenVideo.playbackRate = 0.5;
+
+            // When video ends, reset to show static image again and restart cycle
+            queenVideo.addEventListener('ended', () => {
+                // Reset: hide video, show image
+                queenVideo.style.display = 'none';
+                queenStaticImage.classList.remove('fade-out');
+                isTransitioning = false;
+
+                // Automatically restart the cycle after image is shown
+                setTimeout(() => {
+                    startTransition();
+                }, 1000); // Wait 1 second before next cycle
+            });
+        }
+
+        // Function to start the transition
+        function startTransition() {
+            if (!isTransitioning) {
+                isTransitioning = true;
+
+                // Wait 1 second, then fade out image and play video
+                setTimeout(() => {
+                    // Fade out static image
+                    queenStaticImage.classList.add('fade-out');
+
+                    // Start video playback immediately for seamless transition
+                    queenVideo.style.display = 'block';
+                    queenVideo.play();
+                }, 1000); // 1 second delay
+            }
+        }
+
+        // Auto-start when Section 9 comes into view
+        const section9Observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting && !hasStarted) {
+                    hasStarted = true;
+                    startTransition();
+                }
+            });
+        }, { threshold: 0.3 });
+
+        const section9 = document.querySelector('.section-9');
+        if (section9) {
+            section9Observer.observe(section9);
+        }
+    </script>
+</body>
+</html>
