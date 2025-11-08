@@ -1884,7 +1884,8 @@
             height="166"
             scrolling="no"
             frameborder="no"
-            allow="autoplay"
+            allow="autoplay; encrypted-media"
+            sandbox="allow-scripts allow-same-origin allow-presentation"
             src="https://w.soundcloud.com/player/?url=https://soundcloud.com/bandoflegends/god-save-the-queen-classical&color=%23ff5500&auto_play=false&hide_related=true&show_comments=false&show_user=false&show_reposts=false&show_teaser=false&visual=false">
         </iframe>
     </div>
@@ -2885,41 +2886,80 @@
 
         const scScript = document.createElement('script');
         scScript.src = 'https://w.soundcloud.com/player/api.js';
+        
         scScript.onload = function() {
+            console.log('SoundCloud API script loaded successfully');
             const iframe = document.querySelector('#soundcloud-player');
+            
             if (iframe) {
-                musicWidget = SC.Widget(iframe);
+                console.log('SoundCloud iframe found, initializing widget...');
+                try {
+                    musicWidget = SC.Widget(iframe);
 
-                // Wait for widget to be ready
-                musicWidget.bind(SC.Widget.Events.READY, function() {
-                    musicWidgetReady = true;
-                    console.log('SoundCloud widget ready');
+                    // Wait for widget to be ready
+                    musicWidget.bind(SC.Widget.Events.READY, function() {
+                        musicWidgetReady = true;
+                        console.log('SoundCloud widget ready and bound');
 
-                    // Enable looping when track finishes
-                    musicWidget.bind(SC.Widget.Events.FINISH, function() {
-                        console.log('Track finished, restarting...');
-                        musicWidget.seekTo(0);
-                        musicWidget.play();
+                        // Enable looping when track finishes
+                        musicWidget.bind(SC.Widget.Events.FINISH, function() {
+                            console.log('Track finished, restarting...');
+                            musicWidget.seekTo(0);
+                            musicWidget.play();
+                        });
                     });
-                });
+                } catch (error) {
+                    console.error('Error initializing SoundCloud widget:', error);
+                }
+            } else {
+                console.error('SoundCloud iframe not found in DOM');
             }
         };
+        
+        scScript.onerror = function() {
+            console.error('Failed to load SoundCloud API script');
+        };
+        
         document.head.appendChild(scScript);
 
         // Global function to start music (will be called when book is clicked)
         window.startBackgroundMusic = function() {
             console.log('startBackgroundMusic called, widgetReady:', musicWidgetReady);
+            
+            // Try to play immediately if widget is ready
             if (musicWidget && musicWidgetReady) {
-                musicWidget.play();
-                console.log('Music play() called');
+                try {
+                    musicWidget.play();
+                    console.log('Music play() called successfully');
+                } catch (error) {
+                    console.error('Error playing music:', error);
+                }
             } else if (musicWidget) {
-                // Try again after a delay if widget not ready yet
-                setTimeout(function() {
+                // Widget exists but not ready yet - try multiple times
+                console.log('Widget not ready, will retry...');
+                let retryCount = 0;
+                const maxRetries = 5;
+                
+                const retryInterval = setInterval(function() {
+                    retryCount++;
+                    console.log('Retry attempt ' + retryCount + '/' + maxRetries);
+                    
                     if (musicWidgetReady) {
-                        musicWidget.play();
-                        console.log('Music play() called (delayed)');
+                        try {
+                            musicWidget.play();
+                            console.log('Music play() called successfully (after retry)');
+                            clearInterval(retryInterval);
+                        } catch (error) {
+                            console.error('Error playing music:', error);
+                            clearInterval(retryInterval);
+                        }
+                    } else if (retryCount >= maxRetries) {
+                        console.warn('Music widget failed to become ready after multiple retries');
+                        clearInterval(retryInterval);
                     }
                 }, 500);
+            } else {
+                console.warn('Music widget not initialized');
             }
         };
 
